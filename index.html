@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AMPARA - Painel Administrativo</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+  </head>
+  <body>
+    <div id="loginView" class="login-page">
+      <div class="login-card">
+        <div class="login-brand">
+          <h1>AMPARA</h1>
+          <p>Painel Administrativo</p>
+        </div>
+
+        <form id="loginForm" class="login-form">
+          <label for="usuario">Usuário</label>
+          <input id="usuario" type="text" placeholder="admin" required />
+
+          <label for="senha">Senha</label>
+          <input id="senha" type="password" placeholder="123456" required />
+
+          <button type="submit">Entrar</button>
+          <p id="loginError" class="message error"></p>
+        </form>
+      </div>
+    </div>
+
+    <div id="appView" class="app-shell hidden">
+      <aside class="sidebar">
+        <div class="brand">
+          <h2>ADMIN</h2>
+          <span>AMPARA</span>
+        </div>
+
+        <nav>
+          <a href="#" class="nav-item active" data-page="dashboard">Dashboard</a>
+          <a href="#" class="nav-item" data-page="denuncias">Denúncias</a>
+          <a href="#" class="nav-item" data-page="apoio">Rede de Apoio</a>
+          <a href="#" class="nav-item" data-page="relatorios">Relatórios</a>
+          <a href="#" class="nav-item logout-link" data-page="sair">Sair</a>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="topbar-text">
+            <span class="page-badge">ADMIN</span>
+            <h1>AMPARA - Painel Administrativo</h1>
+            <p>Veja as denúncias cadastradas e atualize o status com rapidez.</p>
+          </div>
+          <button id="logoutButton" class="secondary-btn">Sair</button>
+        </header>
+
+        <section id="dashboardSection" class="dashboard-panel">
+          <div class="dashboard-hero">
+            <div>
+              <h2>Denúncias por região</h2>
+              <p>Resumo rápido para a apresentação do painel.</p>
+            </div>
+            <div class="filter-card">
+              <span>Filtrar por:</span>
+              <select>
+                <option>Região</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-title">Distribuição por local</div>
+            <div id="chartBars" class="chart-bars"></div>
+          </div>
+
+          <div class="summary-cards">
+            <article class="info-card primary-card">
+              <span>Total de denúncias</span>
+              <strong id="totalDenuncias">0</strong>
+            </article>
+            <article class="info-card">
+              <span>Em análise</span>
+              <strong id="analiseCount">0</strong>
+            </article>
+            <article class="info-card">
+              <span>Finalizadas</span>
+              <strong id="finalizadasCount">0</strong>
+            </article>
+          </div>
+        </section>
+
+        <section id="denunciasSection" class="panel-card hidden">
+          <div class="panel-header">
+            <div>
+              <h2>Denúncias</h2>
+              <p>Pesquisa por protocolo, tipo ou local.</p>
+            </div>
+            <div class="search-box">
+              <input id="searchInput" type="text" placeholder="Buscar por protocolo, tipo ou local" />
+            </div>
+          </div>
+
+          <div id="statusMessage" class="message" role="status"></div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Protocolo</th>
+                  <th>Tipo</th>
+                  <th>Relato</th>
+                  <th>Local</th>
+                  <th>Urgência</th>
+                  <th>Data da ocorrência</th>
+                  <th>Status</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="apoioSection" class="panel-card hidden">
+          <div class="panel-header">
+            <div>
+              <h2>Rede de Apoio</h2>
+              <p>Conteúdo de apoio será adicionado em breve.</p>
+            </div>
+          </div>
+          <div class="placeholder-card">
+            <p>Esta tela está preparada para mostrar a lista de parceiros e contatos de apoio.</p>
+          </div>
+        </section>
+
+        <section id="relatoriosSection" class="panel-card hidden">
+          <div class="panel-header">
+            <div>
+              <h2>Relatórios</h2>
+              <p>Dados e gráficos extras serão inseridos aqui.</p>
+            </div>
+          </div>
+          <div class="placeholder-card">
+            <p>Visão geral de relatórios será disponibilizada futuramente.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="firebase.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
