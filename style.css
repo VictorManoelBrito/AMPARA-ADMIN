@@ -391,3 +391,118 @@ tbody tr:hover {
     min-width: 100%;
   }
 }
+
+/* ===== Rede de Apoio (cadastro e gerenciamento) ===== */
+.success-btn {
+  background: #22c55e;
+  color: white;
+}
+
+.danger-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 8px 12px;
+}
+
+.edit-btn {
+  background: #e3f2fd;
+  color: var(--secondary);
+  padding: 8px 12px;
+  margin-right: 6px;
+}
+
+.apoio-search {
+  margin-bottom: 12px;
+}
+
+.apoio-search input {
+  width: 100%;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge-ativo {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-inativo {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  color: var(--muted);
+}
+
+.page-btn {
+  background: #e3f2fd;
+  color: var(--text);
+  padding: 6px 12px;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+}
+
+.apoio-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 640px;
+}
+
+.apoio-form label {
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+.apoio-form input[type="text"],
+.apoio-form input[type="tel"],
+.apoio-form select,
+.apoio-form textarea {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 90px;
+  gap: 10px;
+}
+
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400 !important;
+}
+
+.form-error {
+  color: #dc2626;
+  min-height: 1em;
+  margin: 4px 0 0;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}

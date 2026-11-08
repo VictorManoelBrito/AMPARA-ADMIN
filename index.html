@@ -123,14 +123,115 @@
         </section>
 
         <section id="apoioSection" class="panel-card hidden">
-          <div class="panel-header">
-            <div>
-              <h2>Rede de Apoio</h2>
-              <p>Conteúdo de apoio será adicionado em breve.</p>
+          <!-- Listagem / gerenciamento (3.1.16) -->
+          <div id="apoioListaView">
+            <div class="panel-header">
+              <div>
+                <h2>Rede de Apoio</h2>
+                <p>Instituições exibidas para os usuários no aplicativo.</p>
+              </div>
+              <button id="btnNovaUnidade" class="success-btn" type="button">+ Nova Unidade</button>
+            </div>
+
+            <div class="search-box apoio-search">
+              <input id="apoioSearchInput" type="text" placeholder="Buscar unidade, tipo ou cidade..." />
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Unidade</th>
+                    <th>Tipo</th>
+                    <th>Cidade</th>
+                    <th>Telefone</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="apoioTableBody"></tbody>
+              </table>
+            </div>
+
+            <div class="pagination">
+              <button id="apoioPrev" class="page-btn" type="button">&lsaquo;</button>
+              <span id="apoioPageInfo">1 de 1</span>
+              <button id="apoioNext" class="page-btn" type="button">&rsaquo;</button>
             </div>
           </div>
-          <div class="placeholder-card">
-            <p>Esta tela está preparada para mostrar a lista de parceiros e contatos de apoio.</p>
+
+          <!-- Cadastro / edição (3.1.15) -->
+          <div id="apoioFormView" class="hidden">
+            <div class="panel-header">
+              <div>
+                <h2 id="apoioFormTitulo">Adicionar Unidade de Apoio</h2>
+                <p>Campos com * são obrigatórios.</p>
+              </div>
+            </div>
+
+            <form id="apoioForm" class="apoio-form" novalidate>
+              <label for="apoioNome">Nome da Unidade *</label>
+              <input id="apoioNome" type="text" maxlength="100" placeholder="Digite o nome..." required />
+
+              <label for="apoioCategoria">Tipo de Unidade *</label>
+              <select id="apoioCategoria" required>
+                <option value="">Selecione o tipo...</option>
+                <option>ONG</option>
+                <option>Centro de Acolhimento / Casa Abrigo</option>
+                <option>Delegacia Especializada</option>
+                <option>Assistência Social (CRAS / CREAS)</option>
+                <option>Saúde</option>
+                <option>Atendimento Jurídico</option>
+                <option>Outro</option>
+              </select>
+
+              <label for="apoioCidade">Cidade *</label>
+              <div class="form-row">
+                <input id="apoioCidade" type="text" maxlength="60" list="listaCidades" placeholder="Selecione a cidade..." required />
+                <select id="apoioUf" required>
+                  <option value="PR" selected>PR</option>
+                  <option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option>
+                  <option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option>
+                  <option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option>
+                  <option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option>
+                  <option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option>
+                  <option>TO</option>
+                </select>
+              </div>
+              <datalist id="listaCidades">
+                <option value="Apucarana"></option>
+                <option value="Arapongas"></option>
+                <option value="Califórnia"></option>
+                <option value="Cambira"></option>
+                <option value="Jandaia do Sul"></option>
+                <option value="Londrina"></option>
+                <option value="Maringá"></option>
+              </datalist>
+
+              <label for="apoioTelefone">Telefone *</label>
+              <input id="apoioTelefone" type="tel" maxlength="20" placeholder="(00) 0000-0000" required />
+
+              <label for="apoioEndereco">Endereço *</label>
+              <input id="apoioEndereco" type="text" maxlength="150" placeholder="Rua, número, bairro" required />
+
+              <label for="apoioEmail">E-mail ou site</label>
+              <input id="apoioEmail" type="text" maxlength="100" placeholder="contato@instituicao.org.br" />
+
+              <label for="apoioDescricao">Descrição</label>
+              <textarea id="apoioDescricao" maxlength="200" rows="3" placeholder="Serviços oferecidos, horário de atendimento..."></textarea>
+
+              <label class="check-label">
+                <input id="apoioAtivo" type="checkbox" checked />
+                Unidade ativa (visível no aplicativo)
+              </label>
+
+              <p id="apoioFormErro" class="form-error"></p>
+
+              <div class="form-actions">
+                <button id="apoioCancelar" class="secondary-btn" type="button">Cancelar</button>
+                <button id="apoioSalvar" class="primary-btn" type="submit">Salvar</button>
+              </div>
+            </form>
           </div>
         </section>
 
@@ -150,5 +251,6 @@
 
     <script src="firebase.js"></script>
     <script src="script.js"></script>
+    <script src="rede-apoio.js"></script>
   </body>
 </html>
