@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AMPARA - Painel Administrativo</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
@@ -63,22 +64,42 @@
         <section id="dashboardSection" class="dashboard-panel">
           <div class="dashboard-hero">
             <div>
-              <h2 id="chartHeading">Denúncias por cidade</h2>
-              <p>Visão geral das ocorrências registradas.</p>
-            </div>
-            <div class="filter-card">
-              <span>Filtrar por:</span>
-              <select id="chartFiltro">
-                <option value="cidade">Cidade</option>
-                <option value="tipo">Tipo</option>
-                <option value="status">Status</option>
-              </select>
+              <h2>Visão geral das denúncias</h2>
+              <p>Use os filtros para analisar as ocorrências por tipo, região e período.</p>
             </div>
           </div>
 
-          <div class="chart-card">
-            <div id="chartTitle" class="chart-title">Distribuição por cidade (5 maiores)</div>
-            <div id="chartBars" class="chart-bars"></div>
+          <!-- Filtros (uma linha acima do gráfico) -->
+          <div class="dash-filtros">
+            <label>
+              <span>Tipo de denúncia</span>
+              <select id="dashTipo"><option value="">Todos os tipos</option></select>
+            </label>
+            <label>
+              <span>Cidade</span>
+              <select id="dashCidade"><option value="">Todas as cidades</option></select>
+            </label>
+            <label>
+              <span>Período</span>
+              <select id="dashPeriodo">
+                <option value="7">Últimos 7 dias</option>
+                <option value="30">Últimos 30 dias</option>
+                <option value="90">Últimos 90 dias</option>
+                <option value="365">Últimos 12 meses</option>
+                <option value="tudo" selected>Todo o período</option>
+              </select>
+            </label>
+            <label>
+              <span>Agrupar por</span>
+              <select id="dashAgrupar">
+                <option value="regiao">Região (bairro)</option>
+                <option value="cidade">Cidade</option>
+                <option value="tipo">Tipo de denúncia</option>
+                <option value="status">Status</option>
+                <option value="tempo">Ao longo do tempo</option>
+              </select>
+            </label>
+            <button id="dashLimpar" class="secondary-btn" type="button">Limpar filtros</button>
           </div>
 
           <div class="summary-cards">
@@ -94,6 +115,27 @@
               <span>Finalizadas</span>
               <strong id="finalizadasCount">0</strong>
             </article>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div id="chartTitle" class="chart-title">Denúncias por região</div>
+                <div id="chartSubtitulo" class="chart-subtitulo">Todos os tipos • todas as cidades • todo o período</div>
+              </div>
+            </div>
+            <div id="chartArea" class="chart-area">
+              <canvas id="dashChart" role="img" aria-label="Gráfico de denúncias conforme os filtros selecionados"></canvas>
+            </div>
+            <p id="chartVazio" class="chart-vazio hidden">Nenhuma denúncia encontrada para os filtros selecionados.</p>
+
+            <details class="chart-tabela">
+              <summary>Ver os números em tabela</summary>
+              <table>
+                <thead><tr><th id="tabelaColuna">Região</th><th>Denúncias</th><th>%</th></tr></thead>
+                <tbody id="dashTabela"></tbody>
+              </table>
+            </details>
           </div>
         </section>
 
@@ -503,6 +545,7 @@
 
     <script src="firebase.js"></script>
     <script src="script.js"></script>
+    <script src="dashboard.js"></script>
     <script src="rede-apoio.js"></script>
     <script src="usuarios.js"></script>
     <script src="relatorios.js"></script>

@@ -13,13 +13,6 @@ const adminSaudacao = document.getElementById("adminSaudacao");
 const searchInput = document.getElementById("searchInput");
 const tableBody = document.getElementById("tableBody");
 const statusMessage = document.getElementById("statusMessage");
-const totalDenunciasEl = document.getElementById("totalDenuncias");
-const analiseCountEl = document.getElementById("analiseCount");
-const finalizadasCountEl = document.getElementById("finalizadasCount");
-const chartBars = document.getElementById("chartBars");
-const chartFiltro = document.getElementById("chartFiltro");
-const chartHeading = document.getElementById("chartHeading");
-const chartTitle = document.getElementById("chartTitle");
 const navItems = Array.from(document.querySelectorAll(".nav-item"));
 
 const secoes = {
@@ -129,47 +122,11 @@ function renderizarTabela() {
     .join("");
 }
 
-const configuracaoGrafico = {
-  cidade: { titulo: "Denúncias por cidade", sub: "Distribuição por cidade (5 maiores)", chave: (d) => cidadeDaDenuncia(d) },
-  tipo: { titulo: "Denúncias por tipo", sub: "Distribuição por tipo de ocorrência (5 maiores)", chave: (d) => d.tipo || "Não informado" },
-  status: { titulo: "Denúncias por status", sub: "Distribuição por status", chave: (d) => d.status || "Em análise" }
-};
-
-function gerarGrafico() {
-  const config = configuracaoGrafico[chartFiltro.value] || configuracaoGrafico.cidade;
-  chartHeading.textContent = config.titulo;
-  chartTitle.textContent = config.sub;
-
-  const contagem = {};
-  denuncias.forEach(({ dados }) => {
-    const chave = config.chave(dados);
-    contagem[chave] = (contagem[chave] || 0) + 1;
-  });
-
-  const ordenados = Object.entries(contagem).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  if (!ordenados.length) {
-    chartBars.innerHTML = `<p class="bar-label">Nenhuma denúncia registrada ainda.</p>`;
-    return;
-  }
-
-  const max = ordenados[0][1];
-  chartBars.innerHTML = ordenados
-    .map(([rotulo, valor]) => `
-        <div class="chart-bar">
-          <div>
-            <p class="bar-label">${escaparHtml(rotulo)}</p>
-            <div class="bar-track"><div class="bar-fill" style="width: ${Math.round((valor / max) * 100)}%;"></div></div>
-          </div>
-          <strong>${valor}</strong>
-        </div>`)
-    .join("");
-}
-
+// O gráfico e os indicadores do dashboard ficam em dashboard.js
 function atualizarResumo() {
-  totalDenunciasEl.textContent = denuncias.length;
-  analiseCountEl.textContent = denuncias.filter(({ dados }) => (dados.status || "Em análise") === "Em análise").length;
-  finalizadasCountEl.textContent = denuncias.filter(({ dados }) => statusFinalizado(dados.status)).length;
-  gerarGrafico();
+  if (typeof window.atualizarDashboard === "function") {
+    window.atualizarDashboard(denuncias.map((d) => d.dados));
+  }
 }
 
 function carregarDenuncias() {
@@ -329,7 +286,6 @@ navItems.forEach((item) => {
 });
 
 searchInput.addEventListener("input", renderizarTabela);
-chartFiltro.addEventListener("change", gerarGrafico);
 
 // ---------- Evidência (imagem guardada na coleção "evidencias") ----------
 

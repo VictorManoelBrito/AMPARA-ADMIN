@@ -747,3 +747,94 @@ tbody tr:hover {
   background: #fef2f2;
   font-weight: 600;
 }
+
+/* ===== Dashboard: filtros e gráfico ===== */
+.dash-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.dash-filtros label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  flex: 1 1 170px;
+}
+
+.dash-filtros select {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: white;
+  color: var(--text);
+}
+
+.dash-filtros .secondary-btn {
+  flex: 0 0 auto;
+  background: white;
+  border: 1px solid var(--border);
+}
+
+.summary-cards {
+  margin-bottom: 20px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.chart-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.chart-subtitulo {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.chart-area {
+  position: relative;
+  width: 100%;
+}
+
+.chart-vazio {
+  color: var(--muted);
+  padding: 24px 0;
+  text-align: center;
+}
+
+.chart-tabela {
+  margin-top: 16px;
+  font-size: 0.9rem;
+}
+
+.chart-tabela summary {
+  cursor: pointer;
+  color: var(--secondary);
+  font-weight: 600;
+}
+
+.chart-tabela table {
+  margin-top: 8px;
+}
+
+/* Rótulos dos cards: texto escuro nos cards brancos, claro no card azul */
+.info-card span {
+  color: var(--muted);
+}
+
+.primary-card span {
+  color: rgba(255, 255, 255, 0.85);
+}
