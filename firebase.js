@@ -28,6 +28,7 @@ function initFirebase() {
 
   db = firebase.firestore();
   window.firebaseDb = db;
+  window.firebaseAuth = firebase.auth();
   window.firebaseReady = true;
   return true;
 }

@@ -42,6 +42,7 @@
   let paginaAtual = 1;
   let idEmEdicao = null;
   let escutando = false;
+  let pararEscuta = null;
 
   // Evita que textos digitados sejam interpretados como HTML na tabela.
   function escaparHtml(texto) {
@@ -123,7 +124,7 @@
     }
     escutando = true;
 
-    window.firebaseDb.collection(COLECAO).onSnapshot(
+    pararEscuta = window.firebaseDb.collection(COLECAO).onSnapshot(
       (snapshot) => {
         instituicoes = snapshot.docs
           .map((doc) => ({ id: doc.id, dados: doc.data() }))
@@ -287,10 +288,18 @@
   });
 
   // Começa a carregar quando o admin abre a página "Rede de Apoio".
-  document.querySelectorAll('.nav-item[data-page="apoio"]').forEach((link) => {
-    link.addEventListener("click", () => {
+  document.addEventListener("ampara:pagina", (e) => {
+    if (e.detail === "apoio") {
       fecharFormulario();
       iniciarEscuta();
-    });
+    }
+  });
+
+  // Ao sair, encerra a escuta do Firestore.
+  document.addEventListener("ampara:logout", () => {
+    if (pararEscuta) pararEscuta();
+    pararEscuta = null;
+    escutando = false;
+    instituicoes = [];
   });
 })();

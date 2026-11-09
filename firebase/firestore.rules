@@ -1,0 +1,85 @@
+rules_version = '2';
+
+// =============================================================
+// AMPARA - Regras de segurança do Cloud Firestore
+// Controle de acesso por perfil: usuário comum x administrador.
+// Cole este conteúdo em: Console do Firebase > Firestore Database > Regras > Publicar
+// =============================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logado() {
+      return request.auth != null;
+    }
+
+    // Administrador = existe administradores/{uid} com ativo == true
+    function isAdmin() {
+      return logado()
+        && exists(/databases/$(database)/documents/administradores/$(request.auth.uid))
+        && get(/databases/$(database)/documents/administradores/$(request.auth.uid)).data.ativo == true;
+    }
+
+    // ---------- Administradores (criados manualmente no Console) ----------
+    match /administradores/{uid} {
+      allow read: if logado() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // ---------- Usuários do aplicativo ----------
+    match /Usuarios/{uid} {
+      allow read: if (logado() && request.auth.uid == uid) || isAdmin();
+
+      // Cadastro: o próprio usuário cria seu documento, sempre como ativo.
+      allow create: if logado() && request.auth.uid == uid
+        && request.resource.data.ativo == true;
+
+      // O usuário só altera seus dados pessoais (nunca o campo "ativo").
+      allow update: if logado() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['nome', 'telefone', 'fotoUrl', 'fcmToken', 'cpf']);
+
+      // O administrador pode ativar/desativar a conta.
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ativo']);
+
+      allow delete: if false;
+    }
+
+    // ---------- Denúncias ----------
+    match /denuncias/{id} {
+      // Identificada: vinculada ao próprio usuário. Anônima: sem usuarioId.
+      allow create: if logado() && (
+        request.resource.data.usuarioId == request.auth.uid
+        || (request.resource.data.anonimo == true
+            && request.resource.data.get('usuarioId', null) == null)
+      );
+
+      // O usuário vê apenas as suas denúncias identificadas; o admin vê todas.
+      allow read: if isAdmin()
+        || (logado() && resource.data.get('usuarioId', null) == request.auth.uid);
+
+      // Somente o administrador atualiza (status).
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // ---------- Rede de Apoio ----------
+    match /instituicoes/{id} {
+      allow read: if logado();
+      allow write: if isAdmin();
+    }
+
+    // ---------- Resultados do quiz (progresso e medalhas) ----------
+    match /resultados_quiz/{id} {
+      allow read: if logado() && (resource == null || resource.data.usuarioId == request.auth.uid);
+      allow create, update: if logado() && request.resource.data.usuarioId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // ---------- Fila de e-mails (extensão Trigger Email) ----------
+    match /mail/{id} {
+      allow create: if logado();
+      allow read, update, delete: if false;
+    }
+  }
+}

@@ -506,3 +506,146 @@ tbody tr:hover {
   gap: 10px;
   margin-top: 8px;
 }
+
+/* ===== Login ===== */
+.login-hint {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.login-form button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* ===== Usuários ===== */
+.toolbar-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.toolbar-input,
+.toolbar-select {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.toolbar-input {
+  flex: 1;
+}
+
+.badge-desativado {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.small-btn {
+  padding: 8px 12px;
+}
+
+.relato-cell {
+  max-width: 280px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ===== Relatórios ===== */
+.apoio-form input[type="date"] {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.apoio-form > div > label {
+  display: block;
+  font-weight: 600;
+  margin: 6px 0 8px;
+}
+
+.apoio-form > div > select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.relatorio-resultado {
+  margin-top: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.relatorio-acoes {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.relatorio-texto {
+  background: #fafafa;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  color: #111827;
+}
+
+/* Impressão: só o relatório aparece */
+@media print {
+  body {
+    background: white;
+  }
+
+  .sidebar,
+  .topbar,
+  .no-print,
+  #dashboardSection,
+  #denunciasSection,
+  #apoioSection,
+  #usuariosSection,
+  .message {
+    display: none !important;
+  }
+
+  .app-shell {
+    display: block;
+  }
+
+  .main-content,
+  .panel-card {
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .relatorio-resultado {
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .relatorio-texto {
+    border: none;
+    background: white;
+    font-size: 9pt;
+    white-space: pre;
+  }
+}
