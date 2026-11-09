@@ -36,7 +36,7 @@ service cloud.firestore {
       // O usuário só altera seus dados pessoais (nunca o campo "ativo").
       allow update: if logado() && request.auth.uid == uid
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['nome', 'telefone', 'fotoUrl', 'fcmToken', 'cpf']);
+             .hasOnly(['nome', 'telefone', 'fotoUrl', 'fotoBase64', 'fcmToken', 'cpf']);
 
       // O administrador pode ativar/desativar a conta.
       allow update: if isAdmin()
@@ -61,6 +61,21 @@ service cloud.firestore {
       // Somente o administrador atualiza (status).
       allow update: if isAdmin();
       allow delete: if false;
+    }
+
+    // ---------- Evidências (imagens comprimidas, entidade "evidencia") ----------
+    match /evidencias/{id} {
+      // Gravada junto com a denúncia. Anônima: sem usuarioId.
+      allow create: if logado() && (
+        request.resource.data.usuarioId == request.auth.uid
+        || request.resource.data.usuarioId == null
+      );
+
+      // Somente o dono (denúncia identificada) e o administrador veem a imagem.
+      allow read: if isAdmin()
+        || (logado() && resource.data.get('usuarioId', null) == request.auth.uid);
+
+      allow update, delete: if false;
     }
 
     // ---------- Rede de Apoio ----------

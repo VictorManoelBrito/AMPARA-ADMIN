@@ -354,6 +354,20 @@
       </main>
     </div>
 
+    <!-- Visualização da evidência anexada à denúncia -->
+    <div id="evidenciaModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="evidenciaTitulo">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 id="evidenciaTitulo">Evidência</h2>
+          <button id="evidenciaFechar" class="secondary-btn" type="button">Fechar</button>
+        </div>
+        <p id="evidenciaInfo" class="modal-info"></p>
+        <div class="modal-imagem">
+          <img id="evidenciaImg" alt="Evidência anexada à denúncia" />
+        </div>
+      </div>
+    </div>
+
     <script src="firebase.js"></script>
     <script src="script.js"></script>
     <script src="rede-apoio.js"></script>

@@ -117,7 +117,12 @@ function renderizarTabela() {
                 .join("")}
             </select>
           </td>
-          <td><button class="save-btn" data-id="${id}">Salvar</button></td>
+          <td>
+            <button class="save-btn" data-id="${id}">Salvar</button>
+            ${dados.evidenciaId || dados.evidenciaUrl
+              ? `<button class="evidencia-btn" data-evidencia="${id}" type="button">Ver evidência</button>`
+              : ""}
+          </td>
         </tr>`)
     .join("");
 }
@@ -274,12 +279,34 @@ loginForm.addEventListener("submit", async (event) => {
     await window.firebaseAuth.signInWithEmailAndPassword(email, senha);
     // onAuthStateChanged continua o fluxo.
   } catch (erro) {
-    console.warn("Falha no login:", erro.code);
-    loginError.textContent = "E-mail ou senha incorretos.";
+    console.warn("Falha no login:", erro.code, erro.message);
+    loginError.textContent = mensagemErroLogin(erro.code);
     loginButton.disabled = false;
     loginButton.textContent = "Entrar";
   }
 });
+
+function mensagemErroLogin(codigo) {
+  switch (codigo) {
+    case "auth/invalid-credential":
+    case "auth/invalid-login-credentials":
+    case "auth/wrong-password":
+    case "auth/user-not-found":
+      return "E-mail ou senha incorretos.";
+    case "auth/invalid-email":
+      return "E-mail em formato inválido.";
+    case "auth/user-disabled":
+      return "Este usuário foi desativado no Firebase Authentication.";
+    case "auth/too-many-requests":
+      return "Muitas tentativas. Aguarde alguns minutos e tente de novo.";
+    case "auth/network-request-failed":
+      return "Sem conexão com o Firebase. Verifique a internet.";
+    case "auth/operation-not-allowed":
+      return "O login por e-mail e senha não está habilitado no Firebase Authentication.";
+    default:
+      return `Não foi possível entrar (${codigo || "erro desconhecido"}).`;
+  }
+}
 
 function sair() {
   loginError.textContent = "";
@@ -302,7 +329,63 @@ navItems.forEach((item) => {
 searchInput.addEventListener("input", renderizarTabela);
 chartFiltro.addEventListener("change", gerarGrafico);
 
+// ---------- Evidência (imagem guardada na coleção "evidencias") ----------
+
+const evidenciaModal = document.getElementById("evidenciaModal");
+const evidenciaImg = document.getElementById("evidenciaImg");
+const evidenciaInfo = document.getElementById("evidenciaInfo");
+
+function fecharEvidencia() {
+  evidenciaModal.classList.add("hidden");
+  evidenciaImg.removeAttribute("src");
+}
+
+async function abrirEvidencia(denunciaId) {
+  const item = denuncias.find((d) => d.id === denunciaId);
+  if (!item) return;
+  const dados = item.dados;
+
+  evidenciaImg.removeAttribute("src");
+  evidenciaInfo.textContent = `Protocolo ${dados.protocolo || "—"} • carregando imagem...`;
+  evidenciaModal.classList.remove("hidden");
+
+  try {
+    if (dados.evidenciaId) {
+      const doc = await window.firebaseDb.collection("evidencias").doc(dados.evidenciaId).get();
+      const base64 = doc.exists ? doc.data().imagemBase64 : null;
+      if (!base64 || !/^[A-Za-z0-9+/=]+$/.test(base64)) throw new Error("Imagem não encontrada");
+      evidenciaImg.src = `data:image/jpeg;base64,${base64}`;
+      const info = doc.data();
+      evidenciaInfo.textContent = `Protocolo ${dados.protocolo || "—"} • enviada em ${formatarData(info.dataEnvio)}`
+        + (info.largura ? ` • ${info.largura}×${info.altura} px` : "");
+    } else if (/^https:\/\//.test(dados.evidenciaUrl)) {
+      // Denúncias antigas, enviadas pelo Firebase Storage
+      evidenciaImg.src = dados.evidenciaUrl;
+      evidenciaInfo.textContent = `Protocolo ${dados.protocolo || "—"}`;
+    } else {
+      throw new Error("Sem evidência");
+    }
+  } catch (erro) {
+    console.error("Erro ao carregar evidência:", erro);
+    evidenciaInfo.textContent = "Não foi possível carregar a evidência.";
+  }
+}
+
+document.getElementById("evidenciaFechar").addEventListener("click", fecharEvidencia);
+evidenciaModal.addEventListener("click", (e) => {
+  if (e.target === evidenciaModal) fecharEvidencia();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !evidenciaModal.classList.contains("hidden")) fecharEvidencia();
+});
+
 tableBody.addEventListener("click", async (event) => {
+  const botaoEvidencia = event.target.closest("button[data-evidencia]");
+  if (botaoEvidencia) {
+    abrirEvidencia(botaoEvidencia.dataset.evidencia);
+    return;
+  }
+
   const button = event.target.closest("button[data-id]");
   if (!button) return;
 

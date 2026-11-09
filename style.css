@@ -649,3 +649,64 @@ tbody tr:hover {
     white-space: pre;
   }
 }
+
+/* ===== Evidência ===== */
+.evidencia-btn {
+  display: block;
+  margin-top: 6px;
+  background: #e3f2fd;
+  color: var(--secondary);
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 200;
+}
+
+.modal-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  width: min(100%, 960px);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.modal-info {
+  color: var(--muted);
+  margin: 8px 0 12px;
+}
+
+.modal-imagem {
+  overflow: auto;
+  text-align: center;
+  background: #f1f5f9;
+  border-radius: 12px;
+  min-height: 120px;
+}
+
+.modal-imagem img {
+  max-width: 100%;
+  height: auto;
+  display: inline-block;
+}
