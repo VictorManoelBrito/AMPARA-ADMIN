@@ -43,6 +43,8 @@
           <a href="#" class="nav-item" data-page="denuncias">Denúncias</a>
           <a href="#" class="nav-item" data-page="apoio">Rede de Apoio</a>
           <a href="#" class="nav-item" data-page="usuarios">Usuários</a>
+          <a href="#" class="nav-item" data-page="tipos">Tipos de Ocorrência</a>
+          <a href="#" class="nav-item" data-page="admins">Administradores</a>
           <a href="#" class="nav-item" data-page="relatorios">Relatórios</a>
           <a href="#" class="nav-item logout-link" data-page="sair">Sair</a>
         </nav>
@@ -275,6 +277,137 @@
           </div>
         </section>
 
+        <!-- Tipos de Ocorrência (cadastro 2.1.1 / entidade tipo_ocorrencia) -->
+        <section id="tiposSection" class="panel-card hidden">
+          <div id="tiposListaView">
+            <div class="panel-header">
+              <div>
+                <h2>Tipos de Ocorrência</h2>
+                <p>Tipos exibidos no aplicativo ao registrar uma denúncia. Tipos inativos deixam de aparecer no app.</p>
+              </div>
+              <button id="btnNovoTipo" class="success-btn" type="button">+ Novo Tipo</button>
+            </div>
+
+            <div id="tiposVazio" class="aviso-card hidden">
+              <p>Nenhum tipo cadastrado ainda. Enquanto a lista estiver vazia, o aplicativo usa os tipos padrão.</p>
+              <button id="btnImportarTipos" class="primary-btn" type="button">Importar tipos padrão</button>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Categoria</th>
+                    <th>Descrição</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tiposTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="tiposFormView" class="hidden">
+            <div class="panel-header">
+              <div>
+                <h2 id="tipoFormTitulo">Novo Tipo de Ocorrência</h2>
+                <p>Campos com * são obrigatórios.</p>
+              </div>
+            </div>
+            <form id="tipoForm" class="apoio-form" novalidate>
+              <label for="tipoNome">Nome do tipo *</label>
+              <input id="tipoNome" type="text" maxlength="60" placeholder="Ex.: Violência Doméstica" required />
+
+              <label for="tipoCategoria">Categoria *</label>
+              <select id="tipoCategoria" required>
+                <option value="">Selecione a categoria...</option>
+                <option>Violência contra a Mulher</option>
+                <option>Discriminação</option>
+                <option>Crime Cibernético</option>
+                <option>Violência e Ameaça</option>
+                <option>Outros</option>
+              </select>
+
+              <label for="tipoDescricao">Descrição</label>
+              <textarea id="tipoDescricao" maxlength="150" rows="3" placeholder="Explique brevemente quando usar este tipo"></textarea>
+
+              <label class="check-label">
+                <input id="tipoAtivo" type="checkbox" checked />
+                Tipo ativo (aparece no aplicativo)
+              </label>
+
+              <p id="tipoFormErro" class="form-error"></p>
+              <div class="form-actions">
+                <button id="tipoCancelar" class="secondary-btn" type="button">Cancelar</button>
+                <button id="tipoSalvar" class="primary-btn" type="submit">Salvar</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- Administradores (cadastro 2.1.1 / entidade administrador) -->
+        <section id="adminsSection" class="panel-card hidden">
+          <div id="adminsListaView">
+            <div class="panel-header">
+              <div>
+                <h2>Administradores</h2>
+                <p>Pessoas com acesso a este painel. Administradores inativos não conseguem entrar.</p>
+              </div>
+              <button id="btnNovoAdmin" class="success-btn" type="button">+ Novo Administrador</button>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Nível de acesso</th>
+                    <th>Status</th>
+                    <th>Ação</th>
+                  </tr>
+                </thead>
+                <tbody id="adminsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="adminsFormView" class="hidden">
+            <div class="panel-header">
+              <div>
+                <h2>Novo Administrador</h2>
+                <p>Será criada uma conta de acesso ao painel com o e-mail e a senha informados.</p>
+              </div>
+            </div>
+            <form id="adminForm" class="apoio-form" novalidate>
+              <label for="adminNome">Nome *</label>
+              <input id="adminNome" type="text" maxlength="100" placeholder="Nome completo" required />
+
+              <label for="adminEmail">E-mail *</label>
+              <input id="adminEmail" type="email" maxlength="100" placeholder="email@exemplo.com" autocomplete="off" required />
+
+              <label for="adminSenha">Senha inicial * (mínimo 8 caracteres)</label>
+              <input id="adminSenha" type="password" minlength="8" autocomplete="new-password" required />
+
+              <label for="adminSenha2">Confirmar senha *</label>
+              <input id="adminSenha2" type="password" minlength="8" autocomplete="new-password" required />
+
+              <label for="adminNivel">Nível de acesso *</label>
+              <select id="adminNivel" required>
+                <option value="total">Total</option>
+              </select>
+
+              <p id="adminFormErro" class="form-error"></p>
+              <div class="form-actions">
+                <button id="adminCancelar" class="secondary-btn" type="button">Cancelar</button>
+                <button id="adminSalvar" class="primary-btn" type="submit">Criar administrador</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
         <!-- Relatórios (3.1.17 e 3.2) -->
         <section id="relatoriosSection" class="panel-card hidden">
           <div class="panel-header no-print">
@@ -373,5 +506,7 @@
     <script src="rede-apoio.js"></script>
     <script src="usuarios.js"></script>
     <script src="relatorios.js"></script>
+    <script src="tipos.js"></script>
+    <script src="admins.js"></script>
   </body>
 </html>

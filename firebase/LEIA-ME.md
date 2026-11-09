@@ -23,6 +23,8 @@ O painel agora usa **Firebase Authentication**. O login fixo `admin` / `123456` 
 
 > Um usuário do aplicativo que tentar entrar no painel recebe "Acesso negado", porque não está na coleção `administradores`.
 
+**Próximos administradores:** depois do primeiro, não é preciso usar o Console. No painel, abra **Administradores → + Novo Administrador**. Por lá também dá para ativar e desativar outros admins (o painel não deixa você desativar a si mesmo nem o último admin ativo).
+
 ## 2. Regras de segurança do Firestore
 
 Faça este passo **depois** de criar o administrador.
@@ -36,6 +38,8 @@ O que as regras garantem:
 - Só o administrador altera o status de uma denúncia, cadastra a rede de apoio e ativa/desativa contas.
 - O usuário não consegue reativar a própria conta (o campo `ativo` só muda pelo admin).
 - Cada usuário só vê o próprio progresso no quiz.
+- As evidências (imagens) só podem ser vistas pelo dono da denúncia identificada e pelo administrador.
+- Só administradores cadastram tipos de ocorrência e outros administradores.
 
 ## 3. Notificações (Firebase Cloud Messaging)
 

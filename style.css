@@ -710,3 +710,40 @@ tbody tr:hover {
   height: auto;
   display: inline-block;
 }
+
+/* ===== Tipos de ocorrência / Administradores ===== */
+.aviso-card {
+  background: var(--panel-soft);
+  border: 1px dashed var(--primary);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.aviso-card p {
+  margin: 0;
+}
+
+.apoio-form input[type="email"],
+.apoio-form input[type="password"] {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.texto-muted {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.erro-tabela {
+  color: #b91c1c;
+  background: #fef2f2;
+  font-weight: 600;
+}

@@ -27,6 +27,8 @@ const secoes = {
   denuncias: document.getElementById("denunciasSection"),
   apoio: document.getElementById("apoioSection"),
   usuarios: document.getElementById("usuariosSection"),
+  tipos: document.getElementById("tiposSection"),
+  admins: document.getElementById("adminsSection"),
   relatorios: document.getElementById("relatoriosSection")
 };
 

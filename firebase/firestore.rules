@@ -19,10 +19,18 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/administradores/$(request.auth.uid)).data.ativo == true;
     }
 
-    // ---------- Administradores (criados manualmente no Console) ----------
+    // ---------- Administradores (cadastrados pelo painel) ----------
     match /administradores/{uid} {
-      allow read: if logado() && request.auth.uid == uid;
-      allow write: if false;
+      allow read: if (logado() && request.auth.uid == uid) || isAdmin();
+
+      // Um admin cadastra outro (sempre como ativo).
+      allow create: if isAdmin() && request.resource.data.ativo == true;
+
+      // Um admin ativa/desativa OUTRO admin (nunca a si mesmo).
+      allow update: if isAdmin() && request.auth.uid != uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ativo', 'nome', 'nivelAcesso']);
+
+      allow delete: if false;
     }
 
     // ---------- Usuários do aplicativo ----------
@@ -76,6 +84,12 @@ service cloud.firestore {
         || (logado() && resource.data.get('usuarioId', null) == request.auth.uid);
 
       allow update, delete: if false;
+    }
+
+    // ---------- Tipos de ocorrência (entidade tipo_ocorrencia) ----------
+    match /tipos_ocorrencia/{id} {
+      allow read: if logado();
+      allow write: if isAdmin();
     }
 
     // ---------- Rede de Apoio ----------
