@@ -838,3 +838,33 @@ tbody tr:hover {
 .primary-card span {
   color: rgba(255, 255, 255, 0.85);
 }
+
+/* ===== Detalhes da denúncia ===== */
+.detalhe-card { width: min(100%, 760px); }
+.detalhe-conteudo { overflow: auto; margin-top: 12px; }
+.detalhe-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 20px;
+  margin-bottom: 16px;
+}
+.detalhe-grade dt { color: var(--muted); font-size: 0.82rem; margin: 0; }
+.detalhe-grade dd { margin: 2px 0 0; font-weight: 600; word-break: break-word; }
+.detalhe-bloco {
+  background: var(--panel-soft);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.detalhe-bloco h3 { margin: 0 0 10px; font-size: 1rem; }
+.detalhe-bloco .detalhe-grade { margin-bottom: 0; }
+.detalhe-relato { white-space: pre-wrap; line-height: 1.5; margin: 0; }
+.detalhe-aviso { color: var(--muted); font-size: 0.88rem; margin: 8px 0 0; }
+.detalhe-acoes { display: flex; gap: 10px; justify-content: flex-end; }
+.detalhe-btn {
+  margin-top: 6px;
+  background: var(--panel-soft);
+  color: var(--secondary);
+  padding: 8px 12px;
+  white-space: nowrap;
+}

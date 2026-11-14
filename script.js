@@ -114,6 +114,7 @@ function renderizarTabela() {
           </td>
           <td>
             <button class="save-btn" data-id="${id}">Salvar</button>
+            <button class="detalhe-btn" data-detalhe="${id}" type="button">Detalhes</button>
             ${dados.evidenciaId || dados.evidenciaUrl
               ? `<button class="evidencia-btn" data-evidencia="${id}" type="button">Ver evidência</button>`
               : ""}
@@ -337,7 +338,117 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !evidenciaModal.classList.contains("hidden")) fecharEvidencia();
 });
 
+// ---------- Detalhes da denúncia (dados completos + denunciante) ----------
+
+const detalheModal = document.getElementById("detalheModal");
+const detalheConteudo = document.getElementById("detalheConteudo");
+const detalheTitulo = document.getElementById("detalheTitulo");
+
+function campo(rotulo, valor) {
+  return `<div><dt>${escaparHtml(rotulo)}</dt><dd>${escaparHtml(valor || "—")}</dd></div>`;
+}
+
+function fecharDetalhe() {
+  detalheModal.classList.add("hidden");
+}
+
+// Denúncias identificadas antigas não têm os dados copiados: busca no cadastro do usuário.
+async function dadosDoDenunciante(dados) {
+  const salvo = {
+    nome: dados.nomeDenunciante,
+    telefone: dados.telefoneDenunciante,
+    email: dados.emailDenunciante
+  };
+  if ((salvo.nome && salvo.telefone && salvo.email) || !dados.usuarioId) return { ...salvo, doCadastro: false };
+  try {
+    const doc = await window.firebaseDb.collection("Usuarios").doc(dados.usuarioId).get();
+    if (!doc.exists) return { ...salvo, doCadastro: false };
+    const u = doc.data();
+    return {
+      nome: salvo.nome || u.nome,
+      telefone: salvo.telefone || u.telefone,
+      email: salvo.email || u.email,
+      doCadastro: true
+    };
+  } catch (erro) {
+    console.error("Erro ao buscar o denunciante:", erro);
+    return { ...salvo, doCadastro: false };
+  }
+}
+
+async function abrirDetalhe(denunciaId) {
+  const item = denuncias.find((d) => d.id === denunciaId);
+  if (!item) return;
+  const d = item.dados;
+
+  detalheTitulo.textContent = `Denúncia ${d.protocolo || ""}`.trim();
+  detalheConteudo.innerHTML = `<p class="modal-info">Carregando...</p>`;
+  detalheModal.classList.remove("hidden");
+
+  let blocoPessoa;
+  if (d.anonimo) {
+    const temContato = d.contatoConfiancaTelefone || d.contatoConfiancaNome;
+    blocoPessoa = `
+      <section class="detalhe-bloco">
+        <h3>Denúncia anônima · contato de confiança</h3>
+        ${temContato
+          ? `<dl class="detalhe-grade">${campo("Nome", d.contatoConfiancaNome)}${campo("Telefone", d.contatoConfiancaTelefone)}</dl>
+             <p class="detalhe-aviso">Pode ser da própria pessoa ou de um terceiro de confiança. Ao ligar, não pergunte nem revele a identidade de quem denunciou.</p>`
+          : `<p class="detalhe-aviso">Nenhum contato foi informado. O acompanhamento é feito somente pelo protocolo.</p>`}
+      </section>`;
+  } else {
+    const p = await dadosDoDenunciante(d);
+    blocoPessoa = `
+      <section class="detalhe-bloco">
+        <h3>Denunciante</h3>
+        <dl class="detalhe-grade">${campo("Nome", p.nome)}${campo("Telefone", p.telefone)}${campo("E-mail", p.email)}</dl>
+        ${p.doCadastro ? `<p class="detalhe-aviso">Dados obtidos do cadastro atual do usuário.</p>` : ""}
+      </section>`;
+  }
+
+  // O modal pode ter sido fechado enquanto carregava
+  if (detalheModal.classList.contains("hidden")) return;
+
+  detalheConteudo.innerHTML = `
+    <dl class="detalhe-grade">
+      ${campo("Tipo", d.tipo)}
+      ${campo("Status", d.status)}
+      ${campo("Urgência", d.urgencia)}
+      ${campo("Data da ocorrência", formatarData(d.dataHoraOcorrencia))}
+      ${campo("Registrada em", formatarData(d.dataCriacao))}
+      ${campo("Local", localDaDenuncia(d))}
+    </dl>
+    ${blocoPessoa}
+    <section class="detalhe-bloco">
+      <h3>Relato</h3>
+      <p class="detalhe-relato">${escaparHtml(d.relato || "—")}</p>
+    </section>
+    <div class="detalhe-acoes">
+      ${d.evidenciaId || d.evidenciaUrl
+        ? `<button class="evidencia-btn" data-evidencia="${denunciaId}" type="button">Ver evidência</button>`
+        : ""}
+    </div>`;
+}
+
+document.getElementById("detalheFechar").addEventListener("click", fecharDetalhe);
+detalheModal.addEventListener("click", (e) => {
+  if (e.target === detalheModal) fecharDetalhe();
+  const botao = e.target.closest("button[data-evidencia]");
+  if (botao) abrirEvidencia(botao.dataset.evidencia);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && evidenciaModal.classList.contains("hidden") && !detalheModal.classList.contains("hidden")) {
+    fecharDetalhe();
+  }
+}, { capture: true }); // roda antes do Esc da evidência: com a evidência aberta, fecha só ela
+
 tableBody.addEventListener("click", async (event) => {
+  const botaoDetalhe = event.target.closest("button[data-detalhe]");
+  if (botaoDetalhe) {
+    abrirDetalhe(botaoDetalhe.dataset.detalhe);
+    return;
+  }
+
   const botaoEvidencia = event.target.closest("button[data-evidencia]");
   if (botaoEvidencia) {
     abrirEvidencia(botaoEvidencia.dataset.evidencia);
