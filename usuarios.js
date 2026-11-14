@@ -84,6 +84,9 @@
 
     try {
       await window.firebaseDb.collection("Usuarios").doc(botao.dataset.id).update({ ativo: ativar });
+      window.registrarMovimentacao(ativar ? "usuario_ativado" : "usuario_desativado",
+        `${ativar ? "Ativou" : "Desativou"} a conta de "${nome}"`,
+        { entidade: "usuario", entidadeId: botao.dataset.id, referencia: usuario ? usuario.dados.email : null });
       mostrarMensagem(ativar ? "Conta ativada." : "Conta desativada.");
     } catch (erro) {
       console.error("Erro ao alterar status do usuário:", erro);

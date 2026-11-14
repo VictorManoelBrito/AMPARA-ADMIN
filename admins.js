@@ -51,7 +51,7 @@
           <tr>
             <td>${escaparHtml(dados.nome || "—")}</td>
             <td>${escaparHtml(dados.email || "—")}</td>
-            <td>${escaparHtml(dados.nivelAcesso || "total")}</td>
+            <td><span class="badge ${window.nivelDoAdmin(dados) === "administrador" ? "badge-painel" : "badge-app"}">${window.nivelDoAdmin(dados) === "administrador" ? "Administrador" : "Moderador"}</span></td>
             <td><span class="badge ${estaAtivo ? "badge-ativo" : "badge-desativado"}">${estaAtivo ? "Ativo" : "Inativo"}</span></td>
             <td>${acao}</td>
           </tr>`;
@@ -143,7 +143,10 @@
         dataCadastro: firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      mostrarMensagem(`Administrador ${nome} criado. Ele já pode entrar no painel.`);
+      window.registrarMovimentacao("admin_criado",
+        `Cadastrou ${nivelAcesso === "moderador" ? "o moderador" : "o administrador"} "${nome}"`,
+        { entidade: "administrador", entidadeId: uid, referencia: email });
+      mostrarMensagem(`${nivelAcesso === "moderador" ? "Moderador" : "Administrador"} ${nome} criado. Já pode entrar no painel.`);
       fecharFormulario();
     } catch (e) {
       console.error("Erro ao criar administrador:", e);
@@ -166,8 +169,9 @@
     if (!alvo) return;
 
     if (!ativar) {
-      const ativos = admins.filter((a) => ativo(a.dados)).length;
-      if (ativos <= 1) {
+      // O sistema nunca pode ficar sem um administrador ativo
+      const administradoresAtivos = admins.filter((a) => ativo(a.dados) && window.nivelDoAdmin(a.dados) === "administrador").length;
+      if (window.nivelDoAdmin(alvo.dados) === "administrador" && administradoresAtivos <= 1) {
         mostrarMensagem("Não é possível desativar o último administrador ativo.", "error");
         return;
       }
@@ -176,7 +180,10 @@
 
     try {
       await window.firebaseDb.collection(COLECAO).doc(alvo.id).update({ ativo: ativar });
-      mostrarMensagem(ativar ? "Administrador ativado." : "Administrador desativado.");
+      window.registrarMovimentacao(ativar ? "admin_ativado" : "admin_desativado",
+        `${ativar ? "Ativou" : "Desativou"} "${alvo.dados.nome || alvo.dados.email}"`,
+        { entidade: "administrador", entidadeId: alvo.id, referencia: alvo.dados.email });
+      mostrarMensagem(ativar ? "Acesso ativado." : "Acesso desativado.");
     } catch (e) {
       console.error("Erro ao alterar administrador:", e);
       mostrarMensagem("Não foi possível alterar o administrador.", "error");

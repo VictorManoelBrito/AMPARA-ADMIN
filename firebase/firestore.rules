@@ -12,22 +12,32 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Administrador = existe administradores/{uid} com ativo == true
-    function isAdmin() {
+    // Equipe do painel = existe administradores/{uid} com ativo == true
+    // (vale para administrador e moderador)
+    function isEquipe() {
       return logado()
         && exists(/databases/$(database)/documents/administradores/$(request.auth.uid))
         && get(/databases/$(database)/documents/administradores/$(request.auth.uid)).data.ativo == true;
     }
 
-    // ---------- Administradores (cadastrados pelo painel) ----------
+    // Administrador = admin ativo com nível "administrador"
+    // (cadastros antigos com "total" ou sem o campo também são administrador).
+    function isAdministrador() {
+      return isEquipe()
+        && get(/databases/$(database)/documents/administradores/$(request.auth.uid)).data
+             .get('nivelAcesso', 'administrador') in ['administrador', 'total'];
+    }
+
+    // ---------- Administradores e moderadores (cadastrados pelo painel) ----------
     match /administradores/{uid} {
-      allow read: if (logado() && request.auth.uid == uid) || isAdmin();
+      allow read: if (logado() && request.auth.uid == uid) || isEquipe();
 
-      // Um admin cadastra outro (sempre como ativo).
-      allow create: if isAdmin() && request.resource.data.ativo == true;
+      // Só o administrador cadastra acessos (sempre como ativo).
+      allow create: if isAdministrador() && request.resource.data.ativo == true
+        && request.resource.data.nivelAcesso in ['administrador', 'moderador'];
 
-      // Um admin ativa/desativa OUTRO admin (nunca a si mesmo).
-      allow update: if isAdmin() && request.auth.uid != uid
+      // O administrador ativa/desativa OUTRO acesso (nunca a si mesmo).
+      allow update: if isAdministrador() && request.auth.uid != uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ativo', 'nome', 'nivelAcesso']);
 
       allow delete: if false;
@@ -35,7 +45,7 @@ service cloud.firestore {
 
     // ---------- Usuários do aplicativo ----------
     match /Usuarios/{uid} {
-      allow read: if (logado() && request.auth.uid == uid) || isAdmin();
+      allow read: if (logado() && request.auth.uid == uid) || isEquipe();
 
       // Cadastro: o próprio usuário cria seu documento, sempre como ativo.
       allow create: if logado() && request.auth.uid == uid
@@ -47,7 +57,7 @@ service cloud.firestore {
              .hasOnly(['nome', 'telefone', 'fotoUrl', 'fotoBase64', 'fcmToken', 'cpf']);
 
       // O administrador pode ativar/desativar a conta.
-      allow update: if isAdmin()
+      allow update: if isEquipe()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ativo']);
 
       allow delete: if false;
@@ -63,11 +73,11 @@ service cloud.firestore {
       );
 
       // O usuário vê apenas as suas denúncias identificadas; o admin vê todas.
-      allow read: if isAdmin()
+      allow read: if isEquipe()
         || (logado() && resource.data.get('usuarioId', null) == request.auth.uid);
 
       // Somente o administrador atualiza (status).
-      allow update: if isAdmin();
+      allow update: if isEquipe();
       allow delete: if false;
     }
 
@@ -80,7 +90,7 @@ service cloud.firestore {
       );
 
       // Somente o dono (denúncia identificada) e o administrador veem a imagem.
-      allow read: if isAdmin()
+      allow read: if isEquipe()
         || (logado() && resource.data.get('usuarioId', null) == request.auth.uid);
 
       allow update, delete: if false;
@@ -89,13 +99,13 @@ service cloud.firestore {
     // ---------- Tipos de ocorrência (entidade tipo_ocorrencia) ----------
     match /tipos_ocorrencia/{id} {
       allow read: if logado();
-      allow write: if isAdmin();
+      allow write: if isEquipe();
     }
 
     // ---------- Rede de Apoio ----------
     match /instituicoes/{id} {
       allow read: if logado();
-      allow write: if isAdmin();
+      allow write: if isEquipe();
     }
 
     // ---------- Resultados do quiz (progresso e medalhas) ----------
@@ -103,6 +113,30 @@ service cloud.firestore {
       allow read: if logado() && (resource == null || resource.data.usuarioId == request.auth.uid);
       allow create, update: if logado() && request.resource.data.usuarioId == request.auth.uid;
       allow delete: if false;
+    }
+
+    // ---------- Registro de movimentações (auditoria) ----------
+    match /movimentacoes/{id} {
+      // Somente o administrador consulta a auditoria.
+      allow read: if isAdministrador();
+
+      // Qualquer pessoa logada registra a PRÓPRIA ação, com o horário do servidor.
+      // Ação de painel só por admin/moderador; "administrador"/"moderador" não podem ser forjados pelo app.
+      // Denúncia anônima: registrada sem autor.
+      allow create: if logado()
+        && request.resource.data.dataHora == request.time
+        && request.resource.data.origem in ['painel', 'app']
+        && (request.resource.data.origem == 'app' || isEquipe())
+        && (request.resource.data.perfil in ['usuario', 'anonimo'] || isEquipe())
+        && (
+          request.resource.data.get('autorUid', null) == request.auth.uid
+          || (request.resource.data.perfil == 'anonimo'
+              && request.resource.data.get('autorUid', null) == null
+              && request.resource.data.acao == 'denuncia_anonima')
+        );
+
+      // Registro imutável: ninguém altera nem apaga.
+      allow update, delete: if false;
     }
 
     // ---------- Fila de e-mails (extensão Trigger Email) ----------

@@ -868,3 +868,20 @@ tbody tr:hover {
   padding: 8px 12px;
   white-space: nowrap;
 }
+
+/* ===== Movimentações (auditoria) e níveis de acesso ===== */
+.nav-item.hidden { display: none; }
+.mov-filtros { flex-wrap: wrap; gap: 10px; }
+.mov-data { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 0.9rem; }
+.nowrap { white-space: nowrap; }
+.badge-painel { background: #e3f2fd; color: #1565c0; }
+.badge-app { background: #f3e5f5; color: #6a1b9a; }
+.historico-lista { margin: 0; padding-left: 18px; line-height: 1.6; }
+.historico-lista li { margin-bottom: 4px; }
+
+/* ===== Encaminhamento por e-mail ===== */
+.enc-form { overflow: auto; margin-top: 8px; }
+.enc-form textarea { font-family: inherit; resize: vertical; }
+.enc-check { display: flex; align-items: center; gap: 8px; font-weight: 500; margin-top: 8px; }
+.enc-check input { width: auto; }
+.form-actions { flex-wrap: wrap; }

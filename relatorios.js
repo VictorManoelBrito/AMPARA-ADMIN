@@ -336,6 +336,10 @@
       else dados = relEstatisticas(lista, await buscar("instituicoes"), await buscar("Usuarios"));
 
       const filtro = descreverFiltro(tipo, faixa);
+      const nomeRelatorio = campoTipo.options[campoTipo.selectedIndex] ? campoTipo.options[campoTipo.selectedIndex].text : tipo;
+      window.registrarMovimentacao("relatorio_gerado",
+        `Gerou o relatório "${nomeRelatorio}" (${campoFormato.value === "csv" ? "CSV" : "tela/PDF"})`,
+        { entidade: "relatorio", referencia: filtro });
 
       if (campoFormato.value === "csv") {
         baixarCsv(tipo, dados, filtro);

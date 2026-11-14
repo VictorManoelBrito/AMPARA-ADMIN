@@ -222,9 +222,13 @@
       const colecao = window.firebaseDb.collection(COLECAO);
       if (idEmEdicao) {
         await colecao.doc(idEmEdicao).update({ ...dados, dataAtualizacao: agora });
+        window.registrarMovimentacao("instituicao_editada", `Editou a unidade "${dados.nome}"`,
+          { entidade: "instituicao", entidadeId: idEmEdicao, referencia: dados.nome });
         aviso("Unidade atualizada com sucesso.");
       } else {
-        await colecao.add({ ...dados, dataCadastro: agora, dataAtualizacao: agora });
+        const ref = await colecao.add({ ...dados, dataCadastro: agora, dataAtualizacao: agora });
+        window.registrarMovimentacao("instituicao_criada", `Cadastrou a unidade "${dados.nome}"`,
+          { entidade: "instituicao", entidadeId: ref.id, referencia: dados.nome });
         aviso("Unidade cadastrada com sucesso.");
       }
       fecharFormulario();
@@ -243,6 +247,8 @@
 
     try {
       await window.firebaseDb.collection(COLECAO).doc(id).delete();
+      window.registrarMovimentacao("instituicao_excluida", `Excluiu a unidade "${nome}"`,
+        { entidade: "instituicao", entidadeId: id, referencia: nome });
       aviso("Unidade excluída.");
     } catch (e) {
       console.error("Erro ao excluir instituição:", e);

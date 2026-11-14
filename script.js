@@ -22,8 +22,13 @@ const secoes = {
   usuarios: document.getElementById("usuariosSection"),
   tipos: document.getElementById("tiposSection"),
   admins: document.getElementById("adminsSection"),
-  relatorios: document.getElementById("relatoriosSection")
+  relatorios: document.getElementById("relatoriosSection"),
+  movimentacoes: document.getElementById("movimentacoesSection")
 };
+
+// Páginas exclusivas do administrador (moderador não acessa)
+const PAGINAS_ADMINISTRADOR = ["admins", "movimentacoes"];
+let loginManual = false; // diferencia o login pelo formulário da sessão restaurada
 
 let denuncias = [];
 let pararDenuncias = null;
@@ -92,7 +97,7 @@ function renderizarTabela() {
   });
 
   if (!filtradas.length) {
-    tableBody.innerHTML = `<tr><td colspan="8">Nenhuma denúncia encontrada.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="9">Nenhuma denúncia encontrada.</td></tr>`;
     return;
   }
 
@@ -105,6 +110,7 @@ function renderizarTabela() {
           <td>${escaparHtml(localDaDenuncia(dados))}</td>
           <td>${escaparHtml(dados.urgencia || "—")}</td>
           <td>${escaparHtml(formatarData(dados.dataHoraOcorrencia))}</td>
+          <td>${escaparHtml(formatarData(dados.dataCriacao))}</td>
           <td>
             <select class="status-select" data-id="${id}">
               ${statusOptions
@@ -151,6 +157,7 @@ function carregarDenuncias() {
 // ---------- Navegação ----------
 
 function definirPagina(pagina) {
+  if (PAGINAS_ADMINISTRADOR.includes(pagina) && !window.ehAdministrador()) pagina = "dashboard";
   navItems.forEach((item) => item.classList.toggle("active", item.dataset.page === pagina));
   Object.entries(secoes).forEach(([nome, el]) => el && el.classList.toggle("hidden", nome !== pagina));
   document.dispatchEvent(new CustomEvent("ampara:pagina", { detail: pagina }));
@@ -160,8 +167,13 @@ function mostrarPainel() {
   loginView.classList.add("hidden");
   appView.classList.remove("hidden");
   if (window.amparaAdmin) {
-    adminSaudacao.textContent = `Olá, ${window.amparaAdmin.nome || window.amparaAdmin.email}. Veja as denúncias e atualize o status com rapidez.`;
+    const nivel = window.ehAdministrador() ? "Administrador" : "Moderador";
+    adminSaudacao.textContent = `Olá, ${window.amparaAdmin.nome || window.amparaAdmin.email} (${nivel}). Veja as denúncias e atualize o status com rapidez.`;
   }
+  // Moderador não vê Administradores nem Movimentações
+  navItems.forEach((item) => {
+    if (PAGINAS_ADMINISTRADOR.includes(item.dataset.page)) item.classList.toggle("hidden", !window.ehAdministrador());
+  });
   carregarDenuncias();
   definirPagina("dashboard");
 }
@@ -217,6 +229,10 @@ function iniciarAutenticacao() {
         return;
       }
       window.amparaAdmin = admin;
+      if (loginManual) {
+        loginManual = false;
+        window.registrarMovimentacao("login_painel", "Entrou no painel");
+      }
       mostrarPainel();
     } catch (erro) {
       console.error("Erro ao verificar administrador:", erro);
@@ -236,9 +252,11 @@ loginForm.addEventListener("submit", async (event) => {
   loginButton.textContent = "Entrando...";
 
   try {
+    loginManual = true;
     await window.firebaseAuth.signInWithEmailAndPassword(email, senha);
     // onAuthStateChanged continua o fluxo.
   } catch (erro) {
+    loginManual = false;
     console.warn("Falha no login:", erro.code, erro.message);
     loginError.textContent = mensagemErroLogin(erro.code);
     loginButton.disabled = false;
@@ -268,8 +286,9 @@ function mensagemErroLogin(codigo) {
   }
 }
 
-function sair() {
+async function sair() {
   loginError.textContent = "";
+  await window.registrarMovimentacao("logout_painel", "Saiu do painel"); // precisa estar logado para gravar
   window.firebaseAuth.signOut();
 }
 
@@ -307,6 +326,8 @@ async function abrirEvidencia(denunciaId) {
   evidenciaImg.removeAttribute("src");
   evidenciaInfo.textContent = `Protocolo ${dados.protocolo || "—"} • carregando imagem...`;
   evidenciaModal.classList.remove("hidden");
+  window.registrarMovimentacao("ver_evidencia", "Visualizou a evidência da denúncia",
+    { entidade: "denuncia", entidadeId: denunciaId, referencia: dados.protocolo || null });
 
   try {
     if (dados.evidenciaId) {
@@ -384,6 +405,8 @@ async function abrirDetalhe(denunciaId) {
   detalheTitulo.textContent = `Denúncia ${d.protocolo || ""}`.trim();
   detalheConteudo.innerHTML = `<p class="modal-info">Carregando...</p>`;
   detalheModal.classList.remove("hidden");
+  window.registrarMovimentacao("ver_detalhes", "Visualizou os detalhes da denúncia",
+    { entidade: "denuncia", entidadeId: denunciaId, referencia: d.protocolo || null });
 
   let blocoPessoa;
   if (d.anonimo) {
@@ -406,6 +429,20 @@ async function abrirDetalhe(denunciaId) {
       </section>`;
   }
 
+  // Histórico de atendimento (somente administrador)
+  const historico = await window.historicoDaDenuncia(denunciaId);
+  let blocoHistorico = "";
+  if (historico) {
+    const itens = historico.filter((m) => ["status_denuncia", "denuncia_encaminhada", "denuncia_registrada", "denuncia_anonima"].includes(m.acao));
+    blocoHistorico = `
+      <section class="detalhe-bloco">
+        <h3>Histórico de atendimento</h3>
+        ${itens.length
+          ? `<ul class="historico-lista">${itens.map((m) => `<li><strong>${escaparHtml(formatarData(m.dataHora))}</strong> · ${escaparHtml(m.perfil === "anonimo" ? "Anônimo" : (m.autorNome || "—"))}: ${escaparHtml(m.descricao || "")}</li>`).join("")}</ul>`
+          : `<p class="detalhe-aviso">Nenhuma alteração registrada para esta denúncia.</p>`}
+      </section>`;
+  }
+
   // O modal pode ter sido fechado enquanto carregava
   if (detalheModal.classList.contains("hidden")) return;
 
@@ -423,7 +460,9 @@ async function abrirDetalhe(denunciaId) {
       <h3>Relato</h3>
       <p class="detalhe-relato">${escaparHtml(d.relato || "—")}</p>
     </section>
+    ${blocoHistorico}
     <div class="detalhe-acoes">
+      <button class="detalhe-btn" data-encaminhar="${denunciaId}" type="button">Encaminhar por e-mail</button>
       ${d.evidenciaId || d.evidenciaUrl
         ? `<button class="evidencia-btn" data-evidencia="${denunciaId}" type="button">Ver evidência</button>`
         : ""}
@@ -435,6 +474,11 @@ detalheModal.addEventListener("click", (e) => {
   if (e.target === detalheModal) fecharDetalhe();
   const botao = e.target.closest("button[data-evidencia]");
   if (botao) abrirEvidencia(botao.dataset.evidencia);
+  const botaoEnc = e.target.closest("button[data-encaminhar]");
+  if (botaoEnc) {
+    fecharDetalhe();
+    window.abrirEncaminhamento(botaoEnc.dataset.encaminhar);
+  }
 });
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && evidenciaModal.classList.contains("hidden") && !detalheModal.classList.contains("hidden")) {
@@ -461,8 +505,21 @@ tableBody.addEventListener("click", async (event) => {
   const id = button.getAttribute("data-id");
   const select = document.querySelector(`.status-select[data-id="${id}"]`);
 
+  const item = denuncias.find((d) => d.id === id);
+  const anterior = item ? item.dados.status || "Em análise" : "";
+  if (select.value === anterior) {
+    mostrarMensagem(`O status já é "${anterior}".`);
+    return;
+  }
+
   try {
-    await window.firebaseDb.collection("denuncias").doc(id).update({ status: select.value });
+    const lote = window.firebaseDb.batch();
+    lote.update(window.firebaseDb.collection("denuncias").doc(id), { status: select.value });
+    lote.set(window.firebaseDb.collection("movimentacoes").doc(), window.novaMovimentacao(
+      "status_denuncia", `Status alterado de "${anterior}" para "${select.value}"`,
+      { entidade: "denuncia", entidadeId: id, referencia: item ? item.dados.protocolo : null,
+        detalhes: { de: anterior, para: select.value } }));
+    await lote.commit();
     mostrarMensagem("Status atualizado com sucesso.");
   } catch (erro) {
     console.error("Erro ao atualizar status:", erro);

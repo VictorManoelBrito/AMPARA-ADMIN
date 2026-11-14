@@ -146,9 +146,13 @@
       const agora = firebase.firestore.FieldValue.serverTimestamp();
       if (idEmEdicao) {
         await window.firebaseDb.collection(COLECAO).doc(idEmEdicao).update({ ...dados, dataAtualizacao: agora });
+        window.registrarMovimentacao("tipo_editado", `Editou o tipo "${dados.nome}"`,
+          { entidade: "tipo_ocorrencia", entidadeId: idEmEdicao, referencia: dados.nome });
         mostrarMensagem("Tipo atualizado.");
       } else {
-        await window.firebaseDb.collection(COLECAO).add({ ...dados, dataCadastro: agora });
+        const ref = await window.firebaseDb.collection(COLECAO).add({ ...dados, dataCadastro: agora });
+        window.registrarMovimentacao("tipo_criado", `Cadastrou o tipo "${dados.nome}"`,
+          { entidade: "tipo_ocorrencia", entidadeId: ref.id, referencia: dados.nome });
         mostrarMensagem("Tipo cadastrado.");
       }
       fecharFormulario();
@@ -175,6 +179,9 @@
     if (!ativar && !confirm(`Desativar o tipo "${item.dados.nome}"? Ele deixará de aparecer no aplicativo.`)) return;
     try {
       await window.firebaseDb.collection(COLECAO).doc(item.id).update({ ativo: ativar });
+      window.registrarMovimentacao(ativar ? "tipo_ativado" : "tipo_desativado",
+        `${ativar ? "Ativou" : "Desativou"} o tipo "${item.dados.nome}"`,
+        { entidade: "tipo_ocorrencia", entidadeId: item.id, referencia: item.dados.nome });
       mostrarMensagem(ativar ? "Tipo ativado." : "Tipo desativado.");
     } catch (e) {
       console.error("Erro ao alterar tipo:", e);
@@ -191,6 +198,7 @@
         lote.set(window.firebaseDb.collection(COLECAO).doc(), { ...t, ativo: true, dataCadastro: agora });
       });
       await lote.commit();
+      window.registrarMovimentacao("tipos_importados", `Importou ${TIPOS_PADRAO.length} tipos padrão`);
       mostrarMensagem("Tipos padrão importados.");
     } catch (e) {
       console.error("Erro ao importar tipos:", e);

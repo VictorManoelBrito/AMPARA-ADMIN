@@ -47,6 +47,7 @@
           <a href="#" class="nav-item" data-page="tipos">Tipos de Ocorrência</a>
           <a href="#" class="nav-item" data-page="admins">Administradores</a>
           <a href="#" class="nav-item" data-page="relatorios">Relatórios</a>
+          <a href="#" class="nav-item" data-page="movimentacoes">Movimentações</a>
           <a href="#" class="nav-item logout-link" data-page="sair">Sair</a>
         </nav>
       </aside>
@@ -162,6 +163,7 @@
                   <th>Local</th>
                   <th>Urgência</th>
                   <th>Data da ocorrência</th>
+                  <th>Registrada em</th>
                   <th>Status</th>
                   <th>Ação</th>
                 </tr>
@@ -394,10 +396,10 @@
           <div id="adminsListaView">
             <div class="panel-header">
               <div>
-                <h2>Administradores</h2>
-                <p>Pessoas com acesso a este painel. Administradores inativos não conseguem entrar.</p>
+                <h2>Administradores e moderadores</h2>
+                <p>Pessoas com acesso a este painel. O <strong>administrador</strong> tem acesso total; o <strong>moderador</strong> não acessa esta tela nem o registro de movimentações. Contas inativas não conseguem entrar.</p>
               </div>
-              <button id="btnNovoAdmin" class="success-btn" type="button">+ Novo Administrador</button>
+              <button id="btnNovoAdmin" class="success-btn" type="button">+ Novo acesso</button>
             </div>
 
             <div class="table-wrapper">
@@ -419,7 +421,7 @@
           <div id="adminsFormView" class="hidden">
             <div class="panel-header">
               <div>
-                <h2>Novo Administrador</h2>
+                <h2>Novo acesso ao painel</h2>
                 <p>Será criada uma conta de acesso ao painel com o e-mail e a senha informados.</p>
               </div>
             </div>
@@ -438,15 +440,57 @@
 
               <label for="adminNivel">Nível de acesso *</label>
               <select id="adminNivel" required>
-                <option value="total">Total</option>
+                <option value="moderador">Moderador: acessa tudo, menos Administradores e Movimentações</option>
+                <option value="administrador">Administrador: acesso total, inclusive auditoria</option>
               </select>
 
               <p id="adminFormErro" class="form-error"></p>
               <div class="form-actions">
                 <button id="adminCancelar" class="secondary-btn" type="button">Cancelar</button>
-                <button id="adminSalvar" class="primary-btn" type="submit">Criar administrador</button>
+                <button id="adminSalvar" class="primary-btn" type="submit">Criar acesso</button>
               </div>
             </form>
+          </div>
+        </section>
+
+        <!-- Movimentações: registro de auditoria (somente administrador) -->
+        <section id="movimentacoesSection" class="panel-card hidden">
+          <div class="panel-header">
+            <div>
+              <h2>Registro de movimentações</h2>
+              <p>Tudo o que foi feito no painel e no aplicativo, com data, hora e responsável. Os registros não podem ser alterados nem apagados.</p>
+            </div>
+            <button id="movExportar" class="secondary-btn" type="button">Exportar CSV</button>
+          </div>
+
+          <div class="toolbar-row mov-filtros">
+            <input id="movBusca" class="toolbar-input" type="text" placeholder="Buscar por descrição, protocolo ou nome..." />
+            <select id="movFiltroPessoa" class="toolbar-select"><option value="">Todas as pessoas</option></select>
+            <select id="movFiltroOrigem" class="toolbar-select">
+              <option value="">Painel e aplicativo</option>
+              <option value="painel">Somente painel</option>
+              <option value="app">Somente aplicativo</option>
+            </select>
+            <select id="movFiltroAcao" class="toolbar-select"></select>
+            <label class="mov-data">De <input id="movFiltroDe" class="toolbar-select" type="date" /></label>
+            <label class="mov-data">Até <input id="movFiltroAte" class="toolbar-select" type="date" /></label>
+            <button id="movLimpar" class="secondary-btn" type="button">Limpar</button>
+          </div>
+          <p id="movContador" class="texto-muted"></p>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data e hora</th>
+                  <th>Quem</th>
+                  <th>Origem</th>
+                  <th>Ação</th>
+                  <th>Detalhes</th>
+                </tr>
+              </thead>
+              <tbody id="movTableBody"><tr><td colspan="5">Carregando...</td></tr></tbody>
+            </table>
           </div>
         </section>
 
@@ -540,6 +584,41 @@
       </div>
     </div>
 
+    <!-- Encaminhamento da denúncia por e-mail -->
+    <div id="encaminharModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="encTitulo">
+      <div class="modal-card detalhe-card">
+        <div class="modal-header">
+          <h2 id="encTitulo">Encaminhar por e-mail</h2>
+          <button id="encFechar" class="secondary-btn" type="button">Fechar</button>
+        </div>
+        <form class="apoio-form enc-form" onsubmit="return false" novalidate>
+          <label for="encInstituicao">Enviar para</label>
+          <select id="encInstituicao"></select>
+
+          <label for="encPara">E-mail do destinatário *</label>
+          <input id="encPara" type="email" maxlength="120" placeholder="email@instituicao.gov.br" />
+
+          <label for="encAssunto">Assunto *</label>
+          <input id="encAssunto" type="text" maxlength="200" />
+
+          <label for="encMensagem">Mensagem * (revise antes de enviar)</label>
+          <textarea id="encMensagem" rows="14"></textarea>
+
+          <label class="enc-check"><input id="encIncluirContato" type="checkbox" /> <span id="encIncluirContatoRotulo">Incluir contato</span></label>
+          <p class="detalhe-aviso">Por padrão, a mensagem leva só o necessário para o atendimento (LGPD). Inclua o contato apenas se o órgão precisar falar com a pessoa.</p>
+          <label class="enc-check"><input id="encMudarStatus" type="checkbox" /> Mudar o status para "Em andamento"</label>
+
+          <p id="encErro" class="form-error"></p>
+          <div class="form-actions">
+            <button id="encCancelar" class="secondary-btn" type="button">Cancelar</button>
+            <button id="encCopiar" class="secondary-btn" type="button">Copiar mensagem</button>
+            <button id="encApp" class="secondary-btn" type="button">Abrir no app de e-mail</button>
+            <button id="encGmail" class="primary-btn" type="button">Abrir no Gmail</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Visualização da evidência anexada à denúncia -->
     <div id="evidenciaModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="evidenciaTitulo">
       <div class="modal-card">
@@ -556,6 +635,8 @@
 
     <script src="firebase.js"></script>
     <script src="script.js"></script>
+    <script src="auditoria.js"></script>
+    <script src="encaminhar.js"></script>
     <script src="dashboard.js"></script>
     <script src="rede-apoio.js"></script>
     <script src="usuarios.js"></script>
